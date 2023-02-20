@@ -38,11 +38,11 @@ in {
       type = fileType;
     };
 
-    formatter = mkOption {
-      type = types.package;
-      description = lib.mdDoc "Output package containing all formatting options";
-      readOnly = true;
-    };
+    # formatter = mkOption {
+    #   type = types.package;
+    #   description = lib.mdDoc "Output package containing all formatting options";
+    #   readOnly = true;
+    # };
 
     shellHook = mkOption {
       type = types.str;
@@ -122,9 +122,9 @@ in {
       );
   in {
     # TODO: This should be a bash script that runs all the configured formatters
-    formatter = pkgs.writeShellScriptBin "formatter" ''
-      echo "formatter running"
-    '';
+    # formatter = pkgs.writeShellScriptBin "formatter" ''
+    #   echo "formatter running"
+    # '';
 
     shellHook = ''
       ${linkFiles}

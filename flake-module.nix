@@ -11,9 +11,7 @@
       config,
       pkgs,
       ...
-    }: let
-      cfg = config.dev-manager;
-    in {
+    }: {
       options.dev-manager = lib.mkOption {
         description = lib.mdDoc ''
           dev-manager configuration.
@@ -23,7 +21,7 @@
         };
       };
       config = {
-        formatter = lib.mkDefault cfg.formatter;
+        # formatter = lib.mkDefault cfg.formatter;
       };
     });
   };
