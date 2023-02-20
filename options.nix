@@ -69,11 +69,11 @@ in {
           "packages"
         ];
       in
-        pkgs.mkShell {
-          shellHook = lib.concatStrings [config.shellHook shellHook];
-          packages = config.packages ++ packages;
-        }
-        // rest;
+        pkgs.mkShell ({
+            shellHook = lib.concatStrings [config.shellHook shellHook];
+            packages = config.packages ++ packages;
+          }
+          // rest);
     };
   };
   config = let
