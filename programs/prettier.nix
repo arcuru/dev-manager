@@ -5,40 +5,7 @@
   ...
 }: let
   cfg = config.programs.prettier;
-
-  # FIXME: Move to central lib, we'll want to do this for all file types
-  yaml = {
-    generate = name: value:
-      pkgs.callPackage ({
-        runCommand,
-        remarshal,
-      }:
-        runCommand name {
-          nativeBuildInputs = [remarshal];
-          value = builtins.toJSON value;
-          passAsFile = ["value"];
-        } ''
-          json2yaml "$valuePath" "$out"
-          sed -i '1s/^/# DO NOT EDIT!!\n/' "$out"
-        '') {};
-
-    type = with lib.types; let
-      valueType =
-        nullOr (oneOf [
-          bool
-          int
-          float
-          str
-          path
-          (attrsOf valueType)
-          (listOf valueType)
-        ])
-        // {
-          description = "YAML value";
-        };
-    in
-      valueType;
-  };
+  inherit (import ../generators.nix {inherit pkgs lib;}) yaml;
 in {
   options.programs.prettier = {
     enable = lib.mkEnableOption "prettier";
