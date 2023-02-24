@@ -38,11 +38,39 @@ in {
       type = fileType;
     };
 
-    # formatter = mkOption {
-    #   type = types.package;
-    #   description = lib.mdDoc "Output package containing all formatting options";
-    #   readOnly = true;
-    # };
+    formatters = mkOption {
+      description = lib.mdDoc "Formatters to be used in nix fmt.";
+      type = types.attrsOf (types.submodule ({name, ...}: {
+        options = {
+          enable = mkOption {
+            type = types.bool;
+            default = true;
+            description = lib.mdDoc "Whether this formatter should be enabled.";
+          };
+          command = mkOption {
+            type = types.str;
+            default = "";
+            description = lib.mdDoc "Command to run for formatting.";
+          };
+          passFileNames = mkOption {
+            type = types.bool;
+            default = true;
+            description = lib.mdDoc "Whether this formatter takes filenames as additional arguments.";
+          };
+          files = mkOption {
+            type = types.str;
+            description = lib.mdDoc "The pattern of files to run on.";
+            default = "";
+          };
+        };
+      }));
+    };
+
+    formatter = mkOption {
+      type = types.package;
+      description = lib.mdDoc "Output package containing all formatting options";
+      readOnly = true;
+    };
 
     shellHook = mkOption {
       type = types.str;
@@ -120,11 +148,46 @@ in {
         '')
         filteredFiles
       );
-  in {
-    # TODO: This should be a bash script that runs all the configured formatters
-    # formatter = pkgs.writeShellScriptBin "formatter" ''
-    #   echo "formatter running"
-    # '';
+
+    filteredFormatters = lib.filterAttrs (n: f: f.enable) config.formatters;
+    formatFiles =
+      ''
+        function formatFiles() {
+          local command="$1"
+          local passFileNames="$2"
+          local files="$3"
+
+          if [[ "$passFileNames" == 1 ]]; then
+            # Use all tracked files
+            git ls-files | while read line
+            do
+                if [[ "$line" =~ $files ]]; then
+                  echo Formatting: $line
+                  eval "$command" $line
+                fi
+            done
+          else
+            echo Formatting: .
+            eval "$command" .
+          fi
+        }
+      ''
+      + lib.concatStrings (
+        lib.mapAttrsToList (n: v: ''
+          formatFiles ${
+            lib.escapeShellArgs [
+              v.command
+              v.passFileNames
+              v.files
+            ]
+          }
+        '')
+        filteredFormatters
+      );
+  in rec {
+    formatter = pkgs.writeShellScriptBin "formatter" formatFiles;
+
+    packages = [formatter];
 
     shellHook = ''
       ${linkFiles}

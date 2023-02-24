@@ -31,5 +31,10 @@ in {
       source = yaml.generate "prettier-config" cfg.settings;
     };
     packages = [cfg.package];
+    formatters.prettier = {
+      enable = true;
+      command = "${pkgs.nodePackages.prettier}/bin/prettier --write";
+      files = "\\.(css|md|yaml)$";
+    };
   };
 }
